@@ -191,9 +191,10 @@
     const ctype = btn.dataset.ctype;
 
     switch (action) {
-      case 'play':           State.moveCard(id, 'battlefield'); activeTab = 'battlefield'; break;
-      case 'discard':        State.moveCard(id, 'graveyard');   activeTab = 'graveyard';   break;
-      case 'hand-exile':     State.moveCard(id, 'exile');       activeTab = 'exile';       break;
+      case 'play':            State.moveCard(id, 'battlefield'); activeTab = 'battlefield'; break;
+      case 'discard':         State.moveCard(id, 'graveyard');   activeTab = 'graveyard';   break;
+      case 'hand-exile':      State.moveCard(id, 'exile');       activeTab = 'exile';       break;
+      case 'return-library':  State.moveCard(id, 'library');                                break;
       case 'tap':            State.tapCard(id);                                             break;
       case 'to-graveyard':   State.moveCard(id, 'graveyard');   activeTab = 'graveyard';   break;
       case 'to-exile':       State.moveCard(id, 'exile');       activeTab = 'exile';       break;

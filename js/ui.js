@@ -91,7 +91,8 @@ const UI = (() => {
       hand: `
         <button class="btn btn-play" data-action="play" data-id="${card.instanceId}">Play</button>
         <button class="btn btn-danger" data-action="discard" data-id="${card.instanceId}">Discard</button>
-        <button class="btn btn-exile" data-action="hand-exile" data-id="${card.instanceId}">Exile</button>`,
+        <button class="btn btn-exile" data-action="hand-exile" data-id="${card.instanceId}">Exile</button>
+        <button class="btn btn-return" data-action="return-library" data-id="${card.instanceId}" title="Undo draw — return to library">↩ Unplay</button>`,
       battlefield: `
         <button class="btn btn-tap" data-action="tap" data-id="${card.instanceId}">${card.isTapped ? 'Untap' : 'Tap'}</button>
         <button class="btn btn-graveyard" data-action="to-graveyard" data-id="${card.instanceId}">⚰ Grave</button>

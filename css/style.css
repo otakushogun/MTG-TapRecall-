@@ -738,6 +738,9 @@ html, body {
 .btn-graveyard { border-color: #666; color: #999; }
 .btn-graveyard:hover { background: rgba(100,100,100,0.15); }
 
+.btn-return { border-color: var(--text-dim); color: var(--text-dim); }
+.btn-return:hover { border-color: var(--text); color: var(--text); }
+
 .btn-exile { border-color: var(--blue); color: var(--blue); }
 .btn-exile:hover { background: rgba(88,166,255,0.15); }
 
@@ -900,7 +903,7 @@ html, body {
 #card-preview {
   position: fixed;
   bottom: 16px;
-  right: 16px;
+  left: 16px;
   z-index: 50;
   pointer-events: none;
   display: flex;
@@ -912,9 +915,9 @@ html, body {
 #card-preview.hidden { display: none; }
 
 #card-preview img {
-  width: 200px;
-  border-radius: 10px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.8);
+  width: 400px;
+  border-radius: 18px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.9);
 }
 
 .preview-name {
