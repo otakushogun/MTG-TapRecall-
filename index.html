@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MTG TapRecall</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- ── Import Screen ── -->
+  <div id="import-screen">
+    <h1>MTG TapRecall</h1>
+    <p class="subtitle">Track your deck, hand, battlefield, graveyard, and tokens.</p>
+    <form id="import-form">
+      <input id="deck-url" type="text" placeholder="Moxfield deck URL or ID (e.g. moxfield.com/decks/abc123)">
+      <div class="divider">or paste decklist</div>
+      <textarea id="deck-text" placeholder="4 Lightning Bolt&#10;2 Island&#10;// Commander&#10;1 Atraxa, Praetors' Voice"></textarea>
+      <div id="import-error"></div>
+      <button id="import-btn" type="submit">Import Deck</button>
+    </form>
+  </div>
+
+  <!-- ── Game Screen ── -->
+  <div id="game-screen" class="hidden">
+
+    <!-- Left: Decklist -->
+    <aside id="decklist-panel">
+      <div id="panel-header">
+        <span id="deck-title">My Deck</span>
+        <button id="new-deck-btn" title="Import new deck">↩ New</button>
+      </div>
+      <input id="card-search" type="search" placeholder="Search cards…">
+      <div id="card-list"></div>
+    </aside>
+
+    <!-- Right: Play Area -->
+    <main id="play-area">
+
+      <!-- Row 1: Tracker -->
+      <section id="tracker">
+        <div id="turn-display">
+          <span>Turn</span>
+          <span id="turn-num">1</span>
+          <button id="next-turn-btn">Next Turn ▶</button>
+        </div>
+
+        <div id="phase-bar"></div>
+
+        <div id="life-controls">
+          <span>♥</span>
+          <button class="life-btn" data-life="-1">−</button>
+          <span id="life-display" title="Double-click to set">20</span>
+          <button class="life-btn" data-life="1">+</button>
+        </div>
+      </section>
+
+      <!-- Row 2: Card Zones -->
+      <section id="cards-section">
+        <div id="tabs">
+          <button class="tab-btn active" data-tab="hand">Hand<span class="tab-count"></span></button>
+          <button class="tab-btn" data-tab="battlefield">Battlefield<span class="tab-count"></span></button>
+          <button class="tab-btn" data-tab="graveyard">Graveyard<span class="tab-count"></span></button>
+          <button class="tab-btn" data-tab="exile">Exile<span class="tab-count"></span></button>
+        </div>
+
+        <div id="zone-hand"        class="zone-panel"        data-zone="hand"></div>
+        <div id="zone-battlefield" class="zone-panel hidden" data-zone="battlefield"></div>
+        <div id="zone-graveyard"   class="zone-panel hidden" data-zone="graveyard"></div>
+        <div id="zone-exile"       class="zone-panel hidden" data-zone="exile"></div>
+      </section>
+
+      <!-- Row 3: Tokens -->
+      <section id="tokens-section">
+        <h4>Tokens</h4>
+        <div id="token-area"></div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Card Preview Overlay -->
+  <div id="card-preview" class="hidden"></div>
+
+  <!-- Effect Modal -->
+  <div id="effect-modal" class="hidden">
+    <div id="effect-modal-body"></div>
+  </div>
+
+  <script src="js/effects.js"></script>
+  <script src="js/state.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
