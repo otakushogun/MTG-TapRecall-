@@ -8,17 +8,48 @@ const API = (() => {
 
   function extractDeckId(input) {
     input = input.trim();
-    const match = input.match(/moxfield\.com\/decks\/([a-zA-Z0-9_-]+)/);
-    if (match) return match[1];
-    if (/^[a-zA-Z0-9_-]+$/.test(input)) return input;
+    // Full URL: https://www.moxfield.com/decks/DECKID  (ignore trailing /edit etc.)
+    const urlMatch = input.match(/moxfield\.com\/decks\/([a-zA-Z0-9_-]+)/);
+    if (urlMatch) return urlMatch[1];
+    // Bare ID: only alphanumeric + _ -
+    if (/^[a-zA-Z0-9_-]{6,}$/.test(input)) return input;
     return null;
   }
 
   async function fetchMoxfieldDeck(input) {
     const deckId = extractDeckId(input);
-    if (!deckId) throw new Error('Invalid Moxfield URL or deck ID');
-    const res = await fetch(`${MOXFIELD_PROXY}/v3/decks/all/${deckId}`);
-    if (!res.ok) throw new Error(`Moxfield fetch failed: ${res.status}`);
+    if (!deckId) {
+      throw new Error(
+        'Could not find a deck ID in that input.\n' +
+        'Paste the full URL from your browser, e.g.:\n' +
+        'https://www.moxfield.com/decks/MkwJl0PJMEK0C8w_TZVhgw'
+      );
+    }
+
+    let res;
+    try {
+      res = await fetch(`${MOXFIELD_PROXY}/v3/decks/all/${deckId}`);
+    } catch (_) {
+      throw new Error(
+        'Cannot reach Moxfield. The nginx proxy is not running.\n' +
+        'Either start nginx (see README) or paste your decklist as text instead.'
+      );
+    }
+
+    if (res.status === 403 || res.status === 401) {
+      throw new Error(
+        'Deck is private. On Moxfield go to Edit Deck → Visibility and set it to Public, then try again.'
+      );
+    }
+    if (res.status === 404) {
+      throw new Error(
+        'Deck not found (404). Check the URL is correct and the deck is set to Public on Moxfield.'
+      );
+    }
+    if (!res.ok) {
+      throw new Error(`Moxfield returned an error (HTTP ${res.status}). Try again or paste your decklist as text.`);
+    }
+
     return res.json();
   }
 

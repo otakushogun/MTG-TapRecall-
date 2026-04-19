@@ -50,9 +50,28 @@
     <div class="modal-box">
       <h3>Import Deck</h3>
       <form id="import-form">
-        <input id="deck-url" type="text" placeholder="Moxfield deck URL or ID">
-        <div class="divider">or paste decklist</div>
-        <textarea id="deck-text" placeholder="4 Lightning Bolt&#10;2 Island&#10;// Commander&#10;1 Atraxa, Praetors' Voice"></textarea>
+
+        <!-- Moxfield URL -->
+        <label class="import-label">Moxfield URL <span class="label-note">(requires nginx proxy — see README)</span></label>
+        <input id="deck-url" type="text" placeholder="https://www.moxfield.com/decks/MkwJl0PJMEK0C8w_TZVhgw" autocomplete="off" spellcheck="false">
+        <details class="import-help">
+          <summary>How to find your Moxfield deck URL</summary>
+          <ol>
+            <li>Open your deck on <strong>moxfield.com</strong></li>
+            <li>Set visibility to <strong>Public</strong> — Edit Deck → Visibility → Public</li>
+            <li>Copy the URL from your browser's address bar</li>
+            <li>It will look like:<br><code>https://www.moxfield.com/decks/<mark>MkwJl0PJMEK0C8w_TZVhgw</mark></code></li>
+            <li>The highlighted part is the deck ID — you can paste the full URL or just the ID</li>
+          </ol>
+        </details>
+
+        <div class="divider">or paste decklist text</div>
+
+        <!-- Text decklist -->
+        <label class="import-label">Decklist <span class="label-note">(works without nginx)</span></label>
+        <textarea id="deck-text" placeholder="4 Lightning Bolt&#10;2 Island&#10;12 Mountain&#10;&#10;// Commander&#10;1 Atraxa, Praetors' Voice"></textarea>
+        <p class="import-hint">One card per line: <code>4 Card Name</code>. Use <code>// Commander</code> to mark a commander section.</p>
+
         <div id="import-error"></div>
         <div class="modal-actions">
           <button id="import-btn" type="submit" class="btn-primary">Import Deck</button>

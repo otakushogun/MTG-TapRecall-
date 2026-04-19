@@ -222,6 +222,86 @@ html, body {
 .btn-primary:hover { background: var(--accent); }
 .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
 
+/* ── Import modal help ── */
+.import-label {
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  display: block;
+  margin-bottom: 4px;
+}
+
+.label-note {
+  font-style: italic;
+  font-weight: normal;
+  color: var(--gold);
+  font-size: 0.75rem;
+}
+
+.import-help {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 0.78rem;
+  color: var(--text-dim);
+  margin-top: 4px;
+}
+
+.import-help summary {
+  cursor: pointer;
+  color: var(--blue);
+  font-size: 0.8rem;
+  user-select: none;
+}
+
+.import-help ol {
+  margin: 8px 0 4px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  line-height: 1.5;
+}
+
+.import-help strong { color: var(--text); }
+
+.import-help code {
+  background: rgba(255,255,255,0.06);
+  border-radius: 3px;
+  padding: 1px 5px;
+  font-size: 0.78rem;
+  color: var(--text);
+  word-break: break-all;
+}
+
+.import-help mark {
+  background: rgba(168,85,247,0.35);
+  color: var(--accent);
+  border-radius: 2px;
+  padding: 0 2px;
+}
+
+.import-hint {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  margin-top: 4px;
+}
+
+.import-hint code {
+  background: rgba(255,255,255,0.06);
+  border-radius: 3px;
+  padding: 1px 4px;
+  font-size: 0.75rem;
+  color: var(--text);
+}
+
+#import-error {
+  white-space: pre-line;
+  font-size: 0.8rem;
+  color: var(--red);
+  min-height: 1em;
+  line-height: 1.5;
+}
+
 .divider {
   text-align: center;
   color: var(--text-dim);

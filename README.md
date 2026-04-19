@@ -117,25 +117,61 @@ A **▶ Continue** button appears at the bottom if you have an unsaved game in p
 
 ### Importing a Deck
 
-1. Click **+ Import Deck** in the My Decks panel.
-2. Either:
-   - Paste a **Moxfield deck URL** (e.g. `https://www.moxfield.com/decks/abc123`) — requires nginx proxy
-   - Paste a **text decklist** in standard format:
-     ```
-     4 Lightning Bolt
-     2 Island
-     12 Mountain
+Click **+ Import Deck** in the My Decks panel. You have two options:
 
-     // Sideboard
-     2 Smash to Smithereens
+---
 
-     // Commander
-     1 Atraxa, Praetors' Voice
-     ```
-3. Click **Import Deck**. Card images and oracle text are fetched from Scryfall.
-4. The deck is saved to your library automatically and a new game starts.
+#### Option 1 — Moxfield URL *(requires nginx proxy)*
 
-**Format detection:** decks with 98+ cards or a `// Commander` section start with 40 life; all others start at 20.
+**Step 1 — Make the deck public**
+
+On Moxfield, open your deck, click **Edit Deck**, scroll to **Visibility**, and set it to **Public**. Private decks cannot be fetched.
+
+**Step 2 — Copy the deck URL**
+
+In your browser address bar the URL looks like:
+
+```
+https://www.moxfield.com/decks/MkwJl0PJMEK0C8w_TZVhgw
+                                ^^^^^^^^^^^^^^^^^^^^^^^^
+                                      this is the deck ID
+```
+
+Copy the full URL (or just the deck ID after `/decks/`) and paste it into the **Moxfield URL** field.
+
+> If you get *"Cannot reach Moxfield"* it means the nginx proxy is not running. Either start nginx (see [Installation → Option B](#option-b--nginx-recommended-for-moxfield-import)) or use Option 2 below.
+
+---
+
+#### Option 2 — Paste decklist text *(works without nginx)*
+
+Paste a standard MTG decklist directly into the text box:
+
+```
+4 Lightning Bolt
+2 Island
+12 Mountain
+
+// Sideboard
+2 Smash to Smithereens
+
+// Commander
+1 Atraxa, Praetors' Voice
+```
+
+Format rules:
+- One card per line: `QUANTITY Card Name`
+- `x` suffix is accepted: `4x Lightning Bolt`
+- Lines starting with `//` are section headers — use `// Commander` to flag a Commander deck
+- Blank lines are ignored
+
+You can export this format from Moxfield via **Export → Text** on any deck page.
+
+---
+
+After import, card images and oracle text are fetched from Scryfall. The deck is saved to your library automatically and a new game starts immediately.
+
+**Format detection:** decks with 98+ cards or a `// Commander` section start at 40 life; all others start at 20.
 
 ---
 
