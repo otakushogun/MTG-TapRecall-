@@ -205,9 +205,54 @@ const UI = (() => {
     document.getElementById('card-preview').classList.add('hidden');
   }
 
+  function fmtDate(ts) {
+    return new Date(ts).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+  }
+
+  function renderSavedDecks(decks) {
+    const el = document.getElementById('saved-decks-list');
+    if (!el) return;
+    if (!decks.length) {
+      el.innerHTML = '<p class="empty-msg">No saved decks. Import one below.</p>';
+      return;
+    }
+    el.innerHTML = decks.map(d => `
+      <div class="library-item" data-deck-id="${d.id}">
+        <div class="library-item-info">
+          <span class="library-item-name">${d.name}</span>
+          <span class="library-item-meta">${d.isCommander ? 'Commander' : 'Standard'} · ${d.cardCount} cards · ${fmtDate(d.importedAt)}</span>
+        </div>
+        <div class="library-item-actions">
+          <button class="btn btn-play" data-action="play-deck" data-id="${d.id}">▶ Play</button>
+          <button class="btn btn-danger" data-action="delete-deck" data-id="${d.id}">✕</button>
+        </div>
+      </div>`).join('');
+  }
+
+  function renderSavedGames(games) {
+    const el = document.getElementById('saved-games-list');
+    if (!el) return;
+    if (!games.length) {
+      el.innerHTML = '<p class="empty-msg">No saved games yet.</p>';
+      return;
+    }
+    el.innerHTML = games.map(g => `
+      <div class="library-item" data-game-id="${g.id}">
+        <div class="library-item-info">
+          <span class="library-item-name">${g.name}</span>
+          <span class="library-item-meta">${g.deckName} · Turn ${g.turn} · ♥ ${g.life} · ${fmtDate(g.savedAt)}</span>
+        </div>
+        <div class="library-item-actions">
+          <button class="btn btn-play" data-action="load-game" data-id="${g.id}">▶ Load</button>
+          <button class="btn btn-danger" data-action="delete-game" data-id="${g.id}">✕</button>
+        </div>
+      </div>`).join('');
+  }
+
   return {
     renderDeckList, renderTracker, renderZone, renderTokens,
     showEffectModal, hideEffectModal, showCardPreview, hideCardPreview,
+    renderSavedDecks, renderSavedGames,
     cardImageUrl,
   };
 })();

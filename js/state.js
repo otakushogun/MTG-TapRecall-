@@ -1,5 +1,7 @@
 const State = (() => {
-  const STORAGE_KEY = 'mtg_taprecall_v1';
+  const SESSION_KEY = 'mtg_taprecall_v1';
+  const DECKS_KEY   = 'mtg_decks_v1';
+  const GAMES_KEY   = 'mtg_games_v1';
   let state = null;
 
   function uid() {
@@ -8,19 +10,22 @@ const State = (() => {
 
   function defaultState() {
     return {
+      deckId: null,
+      gameId: null,
+      gameName: null,
       deckName: '',
       isCommander: false,
       life: 20,
       turn: 1,
       phase: 'untap',
-      library: [],        // { name, quantity, remaining, scryfall }
-      hand: [],           // card instances
-      battlefield: [],    // card instances
-      graveyard: [],      // card instances
-      exile: [],          // card instances
-      tokens: [],         // token instances on battlefield
-      availableTokens: [], // token templates from scryfall
-      temporaryEffects: [], // { instanceId, description, expiresPhase }
+      library: [],
+      hand: [],
+      battlefield: [],
+      graveyard: [],
+      exile: [],
+      tokens: [],
+      availableTokens: [],
+      temporaryEffects: [],
     };
   }
 
@@ -35,9 +40,10 @@ const State = (() => {
     };
   }
 
+  // ── Session (auto-save) ──────────────────────────────────────
   function load() {
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
+      const raw = localStorage.getItem(SESSION_KEY);
       if (raw) state = JSON.parse(raw);
     } catch (_) {}
     if (!state) state = defaultState();
@@ -45,13 +51,99 @@ const State = (() => {
   }
 
   function save() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    localStorage.setItem(SESSION_KEY, JSON.stringify(state));
   }
 
   function get() { return state; }
 
+  function hasActiveSession() {
+    return state.library.length > 0 &&
+      (state.hand.length > 0 || state.battlefield.length > 0 || state.turn > 1);
+  }
+
+  // ── Deck Library ─────────────────────────────────────────────
+  function loadDecks() {
+    try { return JSON.parse(localStorage.getItem(DECKS_KEY)) || []; } catch { return []; }
+  }
+
+  function _saveDecks(decks) {
+    localStorage.setItem(DECKS_KEY, JSON.stringify(decks));
+  }
+
+  function upsertDeck(deckData, existingId) {
+    const decks = loadDecks();
+    const id = existingId || uid();
+    const deck = {
+      id,
+      name: deckData.deckName,
+      isCommander: deckData.isCommander,
+      cardCount: deckData.cards.reduce((s, c) => s + c.quantity, 0),
+      cards: deckData.cards,
+      availableTokens: deckData.availableTokens || [],
+      importedAt: Date.now(),
+    };
+    const idx = decks.findIndex(d => d.id === id);
+    if (idx >= 0) decks[idx] = deck; else decks.unshift(deck);
+    _saveDecks(decks);
+    return id;
+  }
+
+  function deleteDeck(deckId) {
+    _saveDecks(loadDecks().filter(d => d.id !== deckId));
+  }
+
+  function getDeck(deckId) {
+    return loadDecks().find(d => d.id === deckId) || null;
+  }
+
+  // ── Game Library ─────────────────────────────────────────────
+  function loadGames() {
+    try { return JSON.parse(localStorage.getItem(GAMES_KEY)) || []; } catch { return []; }
+  }
+
+  function _saveGames(games) {
+    localStorage.setItem(GAMES_KEY, JSON.stringify(games));
+  }
+
+  function saveGameSnapshot(name) {
+    const games = loadGames();
+    const gameId = state.gameId || uid();
+    state.gameId = gameId;
+    state.gameName = name;
+    const entry = {
+      id: gameId,
+      name,
+      deckId: state.deckId,
+      deckName: state.deckName,
+      turn: state.turn,
+      life: state.life,
+      savedAt: Date.now(),
+      snapshot: JSON.parse(JSON.stringify(state)),
+    };
+    const idx = games.findIndex(g => g.id === gameId);
+    if (idx >= 0) games[idx] = entry; else games.unshift(entry);
+    _saveGames(games);
+    save();
+    return gameId;
+  }
+
+  function loadGameSnapshot(gameId) {
+    const entry = loadGames().find(g => g.id === gameId);
+    if (!entry) return false;
+    state = { ...entry.snapshot };
+    save();
+    return true;
+  }
+
+  function deleteGame(gameId) {
+    _saveGames(loadGames().filter(g => g.id !== gameId));
+  }
+
+  // ── Deck Init ─────────────────────────────────────────────────
   function initDeck(deckData) {
+    const deckId = upsertDeck(deckData);
     state = defaultState();
+    state.deckId = deckId;
     state.deckName = deckData.deckName;
     state.isCommander = deckData.isCommander;
     state.life = deckData.isCommander ? 40 : 20;
@@ -66,6 +158,27 @@ const State = (() => {
     save();
   }
 
+  function startGameFromDeck(deckId) {
+    const deck = getDeck(deckId);
+    if (!deck) return false;
+    state = defaultState();
+    state.deckId = deckId;
+    state.deckName = deck.name;
+    state.isCommander = deck.isCommander;
+    state.life = deck.isCommander ? 40 : 20;
+    state.library = deck.cards.map(c => ({
+      name: c.name,
+      quantity: c.quantity,
+      remaining: c.quantity,
+      section: c.section,
+      scryfall: c.scryfall,
+    }));
+    state.availableTokens = deck.availableTokens || [];
+    save();
+    return true;
+  }
+
+  // ── Card Actions ──────────────────────────────────────────────
   function drawToHand(cardName) {
     const lib = state.library.find(c => c.name === cardName && c.remaining > 0);
     if (!lib) return null;
@@ -82,13 +195,9 @@ const State = (() => {
     let card = null;
     for (const z of zones) {
       const idx = state[z].findIndex(c => c.instanceId === instanceId);
-      if (idx !== -1) {
-        card = state[z].splice(idx, 1)[0];
-        break;
-      }
+      if (idx !== -1) { card = state[z].splice(idx, 1)[0]; break; }
     }
     if (!card) return;
-
     if (toZone === 'library') {
       const lib = state.library.find(c => c.name === card.name);
       if (lib) lib.remaining = Math.min(lib.remaining + 1, lib.quantity);
@@ -130,29 +239,16 @@ const State = (() => {
     save();
   }
 
-  function nextPhase() {
-    const phases = Effects.PHASES.map(p => p.id);
-    const idx = phases.indexOf(state.phase);
-    if (idx === phases.length - 1) {
-      nextTurn();
-    } else {
-      state.phase = phases[idx + 1];
-      applyPhaseTransition(state.phase);
-      save();
-    }
-  }
-
+  // ── Phase / Turn ──────────────────────────────────────────────
   function setPhase(phaseId) {
     state.phase = phaseId;
-    applyPhaseTransition(phaseId);
+    _applyPhaseTransition(phaseId);
     save();
   }
 
-  function applyPhaseTransition(phase) {
+  function _applyPhaseTransition(phase) {
     if (phase === 'untap') {
-      state.battlefield.forEach(c => {
-        if (Effects.shouldUntapOnUntap(c)) c.isTapped = false;
-      });
+      state.battlefield.forEach(c => { if (Effects.shouldUntapOnUntap(c)) c.isTapped = false; });
       state.tokens.forEach(t => { t.isTapped = false; });
     }
     if (phase === 'cleanup') {
@@ -163,17 +259,17 @@ const State = (() => {
   function nextTurn() {
     state.turn++;
     state.phase = 'untap';
-    applyPhaseTransition('untap');
+    _applyPhaseTransition('untap');
     save();
   }
 
+  // ── Tokens ────────────────────────────────────────────────────
   function addToken(tokenData, count = 1) {
     for (let i = 0; i < count; i++) {
       state.tokens.push({
         instanceId: uid(),
         name: tokenData.name,
         scryfall: tokenData,
-        count: 1,
         power: tokenData.power || '*',
         toughness: tokenData.toughness || '*',
         isTapped: false,
@@ -184,15 +280,7 @@ const State = (() => {
   }
 
   function addCustomToken(name, power, toughness) {
-    state.tokens.push({
-      instanceId: uid(),
-      name,
-      scryfall: null,
-      power,
-      toughness,
-      isTapped: false,
-      counters: {},
-    });
+    state.tokens.push({ instanceId: uid(), name, scryfall: null, power, toughness, isTapped: false, counters: {} });
     save();
   }
 
@@ -213,16 +301,19 @@ const State = (() => {
     save();
   }
 
-  function clearGame() {
+  function clearSession() {
     state = defaultState();
-    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(SESSION_KEY);
   }
 
   return {
-    load, save, get, initDeck, drawToHand, moveCard, tapCard,
-    addCounter, removeCounter, adjustLife, setLife,
-    nextPhase, setPhase, nextTurn,
+    load, save, get, hasActiveSession,
+    loadDecks, upsertDeck, deleteDeck, getDeck,
+    loadGames, saveGameSnapshot, loadGameSnapshot, deleteGame,
+    initDeck, startGameFromDeck,
+    drawToHand, moveCard, tapCard, addCounter, removeCounter,
+    adjustLife, setLife, setPhase, nextTurn,
     addToken, addCustomToken, removeToken, tapToken, addTokenCounter,
-    clearGame,
+    clearSession,
   };
 })();
